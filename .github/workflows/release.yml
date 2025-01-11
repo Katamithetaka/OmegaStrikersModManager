@@ -31,8 +31,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
 
-    - name: inno-setup-download
-      uses: ./.github/actions/inno-download
+
 
     - name: Build Windows Installer
       working-directory: ./OmegaStrikersModLoader
