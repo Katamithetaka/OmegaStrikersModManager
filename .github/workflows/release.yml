@@ -1,0 +1,72 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build:
+    permissions:
+      packages: write
+      contents: write
+    
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: inno-setup-download
+      uses: pwall2222/inno-setup-download@v0.0.6
+
+    - name: Build Windows Installer
+      working-directory: ./OmegaStrikersModLoader
+      run: ./buildInstaller.bat
+
+    - name: Zip output
+      uses: TheDoctor0/zip-release@0.7.6
+      with: 
+        filename: portable.zip
+        directory: ./OmegaStrikersModLoader/bin/Release/net8.0/
+        
+    - name: Zip installer
+      uses: TheDoctor0/zip-release@0.7.6
+      with: 
+        filename: windows-installer.zip
+        directory: ./Output/
+
+    - name: Create Release
+      id: create_release
+      uses: elgohr/Github-Release-Action@v5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        title: Release ${{ github.ref }}
+        prerelease: true
+        
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          ./OmegaStrikersModLoader/bin/Release/net8.0/portable.zip
+          ./Output/windows-installer.zip
+          ./Output/OmegaStrikersModInstallerSetup.exe
+    
+
+        
+    
+    
