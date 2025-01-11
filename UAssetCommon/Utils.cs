@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using UAssetAPI;
@@ -30,43 +32,37 @@ namespace UAssetCommon
 #pragma warning restore CS8605
         }
 
+        public static string GetRepakExe()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return "./repak.elf";
+            }
+            else
+            {
+                return "./repak.exe";
+            }
+        }
 
         public static void PackDirectory(string path)
         {
             string dir = Path.GetFullPath(path);
-            PakBuilder pakBuilder = new();
-            pakBuilder.Compression([PakCompression.Zlib]);
-
-            using (var file = new FileStream(path + ".pak", FileMode.Create, FileAccess.Write))
+            
+            if (!Directory.Exists(dir))
             {
-                using var writer = pakBuilder.Writer(file, PakVersion.V8B);
-
-
-                void ReadDir(string path)
-                {
-                    var directories = Directory.GetDirectories(path);
-                    foreach (var directory in directories)
-                    {
-                        ReadDir(directory);
-                    }
-
-                    var files = Directory.GetFiles(path);
-                    foreach (var file in files)
-                    {
-                        var p = file.Replace(dir + "\\", "").Replace("\\", "/");
-                        var bytes = File.ReadAllBytes(file);
-
-                        writer.WriteFile(p, bytes);
-                        Console.WriteLine(p);
-                    }
-
-
-                }
-
-
-                ReadDir(path);
-                writer.WriteIndex();
+                Directory.CreateDirectory(dir);
             }
+
+            string exe = GetRepakExe();
+
+            ProcessStartInfo processStartInfo = new ProcessStartInfo(exe);
+            processStartInfo.UseShellExecute = false;
+            processStartInfo.ArgumentList.Add("pack");
+            processStartInfo.ArgumentList.Add("--compression");
+            processStartInfo.ArgumentList.Add("Zlib");
+            processStartInfo.ArgumentList.Add("--version");
+            processStartInfo.ArgumentList.Add("V8B");
+            Process.Start(processStartInfo);
         }
     }
 }
