@@ -1,6 +1,3 @@
 [submodule "UAssetAPI"]
 	path = UAssetAPI
 	url = https://github.com/Katamithetaka/UAssetAPI
-[submodule ".github/actions/inno-setup-download"]
-	path = .github/actions/inno-setup-download
-	url = https://github.com/Katamithetaka/inno-setup-download.git
